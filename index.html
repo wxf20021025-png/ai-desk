@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>温度 / 思维 · 双 AI 分工台（译员版）</title>
+<style>
+  :root{
+    --bg:#faf8f5;
+    --paper:#ffffff;
+    --ink:#1f1d1a;
+    --muted:#7a746c;
+    --line:#e8e2d9;
+    --warm:#d97757;
+    --warm-soft:#fdf0ea;
+    --cold:#2f5d8a;
+    --cold-soft:#eef4fa;
+    --ok:#4c7a5a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",system-ui,sans-serif;
+    line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:56px 28px 80px;}
+  header.top{margin-bottom:36px;}
+  .kicker{
+    font-size:12px;letter-spacing:.22em;color:var(--muted);
+    text-transform:uppercase;margin-bottom:14px;
+  }
+  h1{
+    font-family:"Songti SC","SimSun",Georgia,serif;
+    font-size:40px;line-height:1.25;margin:0 0 12px;font-weight:600;letter-spacing:-.01em;
+  }
+  h1 .a{color:var(--warm);}
+  h1 .b{color:var(--cold);}
+  .sub{color:var(--muted);font-size:15px;max-width:760px;margin:0;}
+  .badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;}
+  .badge{
+    font-size:12px;padding:4px 11px;border-radius:999px;
+    background:#fff;border:1px solid var(--line);color:var(--muted);
+  }
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start;}
+  @media (max-width:900px){.grid{grid-template-columns:1fr;}h1{font-size:30px;}}
+  .card{
+    background:var(--paper);border:1px solid var(--line);border-radius:14px;
+    padding:24px;box-shadow:0 1px 2px rgba(31,29,26,.03);
+  }
+  .card + .card{margin-top:20px;}
+  .card h2{
+    font-size:14px;letter-spacing:.08em;color:var(--muted);
+    margin:0 0 16px;font-weight:600;
+  }
+  textarea{
+    width:100%;min-height:190px;resize:vertical;border:1px solid var(--line);
+    border-radius:10px;padding:14px 15px;font-family:inherit;font-size:14.5px;
+    line-height:1.8;background:#fcfbf9;color:var(--ink);outline:none;
+  }
+  textarea:focus{border-color:#d5cbbd;background:#fff;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0;}
+  .chip{
+    border:1px solid var(--line);background:#fff;color:var(--muted);
+    border-radius:999px;padding:6px 13px;font-size:13px;cursor:pointer;
+    transition:.15s;font-family:inherit;
+  }
+  .chip:hover{border-color:#d5cbbd;color:var(--ink);}
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .row{display:flex;gap:10px;flex-wrap:wrap;}
+  button.primary{
+    background:var(--ink);color:#fff;border:none;border-radius:10px;
+    padding:11px 22px;font-size:14px;cursor:pointer;font-family:inherit;
+    letter-spacing:.02em;
+  }
+  button.primary:hover{background:#37332d;}
+  button.ghost{
+    background:#fff;border:1px solid var(--line);color:var(--muted);
+    border-radius:10px;padding:11px 18px;font-size:13.5px;cursor:pointer;font-family:inherit;
+  }
+  button.ghost:hover{color:var(--ink);border-color:#d5cbbd;}
+  .hint{font-size:12.5px;color:#a49c92;margin-top:12px;}
+  .empty{
+    color:#a49c92;font-size:14px;border:1px dashed var(--line);border-radius:12px;
+    padding:34px 20px;text-align:center;background:#fcfbf9;
+  }
+  .verdict{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+  .pill{
+    display:inline-flex;align-items:center;gap:6px;border-radius:999px;
+    padding:6px 14px;font-size:13.5px;font-weight:600;
+  }
+  .pill.warm{background:var(--warm-soft);color:#a4502f;}
+  .pill.cold{background:var(--cold-soft);color:var(--cold);}
+  .pill.plain{background:#f4f1ec;color:var(--muted);font-weight:500;}
+  .score{display:flex;align-items:center;gap:10px;margin:14px 0 18px;font-size:12.5px;color:var(--muted);}
+  .bar{flex:1;height:6px;background:#f0ece5;border-radius:999px;overflow:hidden;}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--warm),var(--cold));}
+  h3.sec{font-size:13px;letter-spacing:.08em;color:var(--muted);margin:22px 0 10px;font-weight:600;}
+  ul.reasons{margin:0;padding-left:18px;font-size:14.5px;}
+  ul.reasons li{margin-bottom:8px;}
+  .promptbox{
+    position:relative;background:#fbf9f5;border:1px solid var(--line);border-radius:10px;
+    padding:16px 16px 14px;font-size:13.5px;line-height:1.8;white-space:pre-wrap;
+    font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;color:#4a453f;
+  }
+  .copy{
+    position:absolute;top:10px;right:10px;border:1px solid var(--line);background:#fff;
+    border-radius:7px;font-size:11.5px;padding:3px 9px;cursor:pointer;color:var(--muted);
+    font-family:inherit;
+  }
+  .copy:hover{color:var(--ink);}
+  .check{display:flex;gap:10px;align-items:flex-start;font-size:14px;margin-bottom:9px;}
+  .check input{margin-top:5px;accent-color:var(--cold);}
+  .risk{
+    background:#fff8f1;border-left:3px solid var(--warm);border-radius:0 8px 8px 0;
+    padding:12px 14px;font-size:13.5px;color:#7a4a31;margin-top:16px;
+  }
+  .cases{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:20px;}
+  @media (max-width:900px){.cases{grid-template-columns:1fr;}}
+  .case{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px;}
+  .case .tag{font-size:11.5px;letter-spacing:.1em;color:var(--muted);}
+  .case h4{margin:8px 0 8px;font-size:16px;}
+  .case p{margin:0;font-size:13.5px;color:#5e5850;}
+  .case .who{margin-top:12px;font-size:12px;color:#a49c92;}
+  footer{margin-top:44px;border-top:1px solid var(--line);padding-top:20px;font-size:12.5px;color:#a49c92;}
+  .cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;}
+  @media (max-width:900px){.cols{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="kicker">AI 产品测评 · 落地 Demo</div>
+    <h1><span class="a">温度</span> 与 <span class="b">思维</span> · 双 AI 分工台</h1>
+    <p class="sub">
+      豆包给的是人情味，DeepSeek 给的是可解释的逻辑。真正影响译员效率的，不是哪个模型更强，
+      而是<strong>什么活交给谁、交付前审哪几步</strong>。把一段原文贴进来，这里给出分工方案、可直接用的 prompt 和审校清单。
+    </p>
+    <div class="badges">
+      <span class="badge">本地运行 · 不联网 · 不调用 API</span>
+      <span class="badge">规则来自真实使用经验</span>
+      <span class="badge">验证假设：译员需要的是流程，不是更强的单模型</span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- 左：输入 -->
+    <section>
+      <div class="card">
+        <h2>01 贴入要处理的内容</h2>
+        <textarea id="src" placeholder="粘贴一段原文：繁体新闻、散文段落、术语密集型文件、带参考文献的论文……
+
+不知道填什么就点下面的示例。"></textarea>
+        <div class="chips" id="taskChips">
+          <button class="chip on" data-task="auto">自动判断</button>
+          <button class="chip" data-task="ocr">图片 / 繁体识别</button>
+          <button class="chip" data-task="literary">文学 · 散文 · 诗歌</button>
+          <button class="chip" data-task="term">专业术语 · 法规 · 医学</button>
+          <button class="chip" data-task="cite">引文 · 出处核查</button>
+          <button class="chip" data-task="casual">口语 · 本地化文案</button>
+        </div>
+        <div class="row">
+          <button class="primary" id="run">开始分诊</button>
+          <button class="ghost" id="demo">载入示例</button>
+          <button class="ghost" id="clear">清空</button>
+        </div>
+        <p class="hint">示例来自真实工作场景：繁体新闻 OCR、文学外译中、术语与出处核查。</p>
+      </div>
+
+      <div class="card">
+        <h2>为什么做这个 Demo</h2>
+        <p style="font-size:14.5px;margin:0;color:#4a453f;">
+          测评文章最容易停在「感受」。但评委看的是：你从感受里提炼出了什么可复用的方法，以及你有没有真的动手。
+          这个页面把文章里的两条判断变成了可执行的工具：
+        </p>
+        <ul class="reasons" style="margin-top:12px;">
+          <li>豆包擅长「像人」——识别容错、语感、情绪价值，适合做第一遍。</li>
+          <li>DeepSeek 擅长「讲理」——思考过程可见、来源可查，适合做第二遍和把关。</li>
+          <li>两者串起来，才是译员今天真实的工作流。</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 右：结果 -->
+    <section>
+      <div class="card" id="out">
+        <h2>02 分工建议</h2>
+        <div class="empty" id="emptyState">
+          还没有输入内容。<br>点「载入示例」看看它怎么工作。
+        </div>
+        <div id="result" style="display:none;"></div>
+      </div>
+    </section>
+  </div>
+
+  <section style="margin-top:34px;">
+    <div class="card">
+      <h2>案例库 · 文章里的三个真实瞬间</h2>
+      <div class="cases">
+        <div class="case">
+          <div class="tag">豆包 · 效率</div>
+          <h4>繁体新闻 OCR</h4>
+          <p>DeepSeek 几次都说文件有问题、识别不出来；换豆包，从识别到提取约 20 秒，正确率 98.7%，人眼都糊的地方还能结合上下文给出依据。</p>
+          <div class="who">结论：图像到文本这一段，先交豆包。</div>
+        </div>
+        <div class="case">
+          <div class="tag">豆包 · 温度</div>
+          <h4>外译中的那点人情味</h4>
+          <p>散文、小说、诗歌交给豆包，译文鲜活不死板；同学用豆包做外译中，拿了韩素音大赛三等奖。</p>
+          <div class="who">结论：文学性任务，语感优先于准确率。</div>
+        </div>
+        <div class="case">
+          <div class="tag">DeepSeek · 可解释</div>
+          <h4>参考文献 404</h4>
+          <p>它给过「王雨」「张霞」「林明」这种参考文献，链接一点全是 404。后来有了检索源，但每个来源都得亲手点开。</p>
+          <div class="who">结论：思考过程能暴露错误，但不能替代核对。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    温度 / 思维 · 双 AI 分工台　|　配套文章《DeepSeek &amp; 豆包——国产两大热门 AI 产品买家评价（INFJ 译员版）》<br>
+    本页为流程验证 Demo：判断规则为人工总结，产出为建议而非自动结果；接入真实模型 API 后可直接用于日常翻译。
+  </footer>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var src = $('src'), result = $('result'), empty = $('emptyState');
+  var task = 'auto';
+
+  var EXAMPLES = {
+    ocr: "新聞報道：位於臺北市中心的這棟建築，過去曾是日治時期的總督府圖書館，如今已改建為兒童教育館。館方表示，未來將結合周邊的藝文資源，規劃一系列的親子課程與展覽活動，讓更多市民認識這座城市的歷史記憶。",
+    literary: "The sea was very calm that night, and the moon laid a long silver path across the water. She stood there, holding her shoes in one hand, and thought of nothing at all — which was, perhaps, the closest she had come to peace in years.",
+    term: "临床试验结果显示，受试者在第12周时的HbA1c水平较基线下降0.8%，且未观察到与药物相关的严重不良事件（SAE）。该结果需在更大样本量的III期研究中进一步验证。",
+    cite: "近年研究表明，数字化转型显著提升制造业全要素生产率[1]。张明等（2023）进一步指出，这一效应在中小企业中更为明显[2]，但其机制仍有待检验。",
+    casual: "姐妹们，这个真的太好用了吧！我昨天试了一下，早上起来皮肤状态好到我自己都愣了一下哈哈，必须安利给你们～"
+  };
+
+  var PROFILES = {
+    ocr: {
+      main: 'warm', mainName: '豆包', subName: 'DeepSeek',
+      headline: '先让豆包把字认出来，再让 DeepSeek 帮你判断这些字是否说得通',
+      reasons: [
+        '图像转文本这一段，豆包的容错和上下文补全明显更强：看不清的地方会给依据，而不是直接判定文件不合格。',
+        '繁体、竖排、版式复杂的新闻页，识别是主要工作量，翻译反而是第二步。',
+        'DeepSeek 的价值放在第二步：核对人名、地名、机构名，以及判断这句话在史料上是否成立。'
+      ],
+      prompt: '你是中文 OCR 校对员。以下是识别出的繁体新闻文本，请按原文顺序逐行输出简体转写：\n1) 保留原文分行与标点；\n2) 无法确认的字用 [?] 标注，并在行末括号内写明你的推断依据；\n3) 不要改写、不要润色、不要补充原文没有的信息。\n\n待校对文本：\n{原文}',
+      checks: [
+        '逐行比对：把 [?] 的地方全部人工回看原图',
+        '人名、机构名、年代单独列一张表核查',
+        '繁体异体字（臺/台、裏/里）统一为同一种写法',
+        '数字、百分比与原图对齐，防止 98.7% 这类关键数据错位',
+        '转写完成后再进入翻译环节，两件事不要混在一轮里'
+      ],
+      risk: 'OCR 阶段最大的坑是「看起来通顺但认错字」，越是语感好的模型越容易顺手把错字圆过去，所以必须保留原文对照。',
+      confidence: 88
+    },
+    literary: {
+      main: 'warm', mainName: '豆包', subName: 'DeepSeek',
+      headline: '豆包出第一稿的味道，DeepSeek 做第二稿的核对',
+      reasons: [
+        '散文、小说、诗歌这类文本，读者感知的是语气和节奏，豆包在这上面更接近人的语感。',
+        'DeepSeek 的强项是把句子拆开看逻辑，用它来查有没有增译、漏译、事实错误更合适。',
+        '一稿求活，二稿求准，顺序反了会越改越僵。'
+      ],
+      prompt: '你是文学翻译。把下面的英文译成中文：\n1) 保留原文的节奏与留白，允许调整句序，但不增加原文没有的意象；\n2) 不要解释、不要加注、不要在译文后附说明；\n3) 遇到文化专有词，优先意译，必要时在括号内保留原词。\n\n原文：\n{原文}',
+      checks: [
+        '逐句对照，标出所有原文没有、译文多出来的修饰',
+        '检查专有名词与时代背景是否被译错',
+        '通读一遍：读起来像中文散文，而不是翻译腔',
+        '把最打动你的那句单独拎出来，确认没有被「顺」掉',
+        '定稿前让 DeepSeek 只做一件事：指出可能的事实性错误'
+      ],
+      risk: '文学翻译里最容易越界的是「替作者写」。润色到读者看不出是译文，往往也意味着原意已经被改。',
+      confidence: 82
+    },
+    term: {
+      main: 'cold', mainName: 'DeepSeek', subName: '豆包',
+      headline: '术语和逻辑交给 DeepSeek，最后用豆包读一遍顺不顺',
+      reasons: [
+        '专业文本的难点是术语一致性和逻辑链，DeepSeek 的术语库和推理过程更经得起追问。',
+        '它的思考过程就是一份免费的自查报告：错在理解、错在术语、还是错在表达，一眼能看出来。',
+        '豆包放在最后一环，检查译出来的中文像不像人话。'
+      ],
+      prompt: '你是医学/法规领域的专业译者。翻译下面的文本：\n1) 术语使用行业通用译法，首次出现时保留英文缩写；\n2) 输出三部分：译文、术语对照表、你不确定的 3 个点及理由；\n3) 不要为了通顺而改变原文的限定条件与程度词。\n\n原文：\n{原文}',
+      checks: [
+        '术语表逐条核对，同一术语全文只用一种译法',
+        '限定词（显著、轻微、可能）不能升级也不能降级',
+        '数字、单位、置信区间与原文一一对应',
+        '看思考过程，找出它自己都不确定的地方重点复核',
+        '最后用豆包读一遍，只改语序不改结论'
+      ],
+      risk: '专业文本里，模型最危险的行为是「帮你把话说圆」。原文的模糊必须保留成模糊。',
+      confidence: 90
+    },
+    cite: {
+      main: 'cold', mainName: 'DeepSeek', subName: '人工核对',
+      headline: '让 DeepSeek 给出处，但每一条都要亲手点开',
+      reasons: [
+        '带引文的文本，价值全在来源是否真实；模型编造文献的成本极低。',
+        'DeepSeek 会展示检索过程，正好用来判断它是真找到还是编的。',
+        '这一步不能全自动：链接打不开、作者对不上，就必须标红。'
+      ],
+      prompt: '请处理下面的带引文文本：\n1) 列出文中每一处引用对应的文献：作者、年份、标题、来源链接；\n2) 对无法确认的条目，明确写「未能核实」，不要推测；\n3) 单独列出你认为可能存在虚构风险的条目，并说明理由。\n\n文本：\n{原文}',
+      checks: [
+        '每条链接都点开，确认能打开且标题一致',
+        '作者姓名逐个核对，警惕「王雨」「张霞」这类通用名',
+        '年份、期刊名与原文引用格式对齐',
+        '标为「未能核实」的条目，一律不进入终稿',
+        '把核查结果整理成表，附在交付物后面'
+      ],
+      risk: '参考文献造假的特征是「格式完美、名字普通、链接失效」。格式越漂亮，越要多点一次。',
+      confidence: 94
+    },
+    casual: {
+      main: 'warm', mainName: '豆包', subName: 'DeepSeek',
+      headline: '口语和情绪交给豆包，事实和承诺交给 DeepSeek 把关',
+      reasons: [
+        '本地化文案要的是「像这个圈子里的人说话」，豆包的语气更自然。',
+        '但口语化最容易说出不该说的承诺，需要另一双眼睛看合规。',
+        '一个负责好听，一个负责不出事。'
+      ],
+      prompt: '你是本地化文案。把下面的内容改写成简体中文社媒口吻：\n1) 保留原意，不夸大功效、不使用绝对化表述；\n2) 语气自然，可以用口语和短句，但不要堆网络烂梗；\n3) 输出两个版本：克制版、活泼版。\n\n原文：\n{原文}',
+      checks: [
+        '删掉所有「最」「第一」「保证」这类绝对化表述',
+        '核对产品功能描述与官方口径一致',
+        '读出声，确认不像广告腔',
+        '两个版本都过一遍合规红线',
+        '确认没有替品牌做出无法兑现的承诺'
+      ],
+      risk: '口语化的边界很窄：一句「真的好用到哭」可能就从分享变成了虚假宣传。',
+      confidence: 78
+    },
+    general: {
+      main: 'cold', mainName: 'DeepSeek', subName: '豆包',
+      headline: '长文与结构先交给 DeepSeek，语感回头再调',
+      reasons: [
+        '长文本的一致性、结构完整性，是 DeepSeek 更稳的部分。',
+        '豆包适合在结构定下来之后，做语气和可读性的最后一遍。',
+        '先搭骨架，再上色。'
+      ],
+      prompt: '你是资深译者。请分两步处理下面的文本：\n第一步：给出结构拆解（每段的核心信息与逻辑关系）；\n第二步：逐段翻译，保持段落编号，术语前后一致。\n\n原文：\n{原文}',
+      checks: [
+        '段落编号与原文一一对应，确认没有漏段',
+        '同一概念在全文中译法统一',
+        '论证关系（因为、因此、然而）没有被抹平',
+        '标题与正文的口径一致',
+        '最后通读，修掉翻译腔'
+      ],
+      risk: '长文最容易在中间悄悄丢信息，靠段落编号比对是最便宜的自查方式。',
+      confidence: 72
+    }
+  };
+
+  function detect(text){
+    var t = text || '';
+    var s = {ocr:0, literary:0, term:0, cite:0, casual:0};
+    var trad = (t.match(/[繁體體識別說話時間發現在這麼們個為與圖書館藝課覽記憶]/g) || []).length;
+    s.ocr += trad * 3;
+    if(/新聞|報導|記者|臺|灣/.test(t)) s.ocr += 2;
+    s.literary += (t.match(/[月海風夜光]\s*(was|is|the|and)/gi) || []).length * 2;
+    if(/[，。；]{2,}/.test(t) && t.length > 120) s.literary += 1;
+    s.term += (t.match(/临床|试验|受试者|诊断|条款|法规|营收|同比|毛利|SAE|HbA1c|III期/g) || []).length * 3;
+    s.cite += (t.match(/\[\d+\]|参考文献|DOI|等（\d{4}）|（\d{4}）/g) || []).length * 3;
+    s.casual += (t.match(/哈哈|啦|呀|嘛|姐妹们|真的|绝了|安利|～|~|！/g) || []).length * 2;
+    if(!t.trim()) return 'general';
+    var best = 'general', max = 0;
+    for(var k in s){ if(s[k] > max){ max = s[k]; best = k; } }
+    return max >= 3 ? best : 'general';
+  }
+
+  function esc(str){
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function render(text, key){
+    var p = PROFILES[key] || PROFILES.general;
+    var mainCls = p.main === 'warm' ? 'warm' : 'cold';
+    var subCls = p.subName === '豆包' ? 'warm' : (p.subName === 'DeepSeek' ? 'cold' : 'plain');
+    var promptText = p.prompt.replace('{原文}', text ? (text.length > 200 ? text.slice(0,200) + '……' : text) : '（此处为你的原文）');
+    var html = '';
+    html += '<div class="verdict">';
+    html += '<span class="pill ' + mainCls + '">主：' + p.mainName + '</span>';
+    html += '<span class="pill ' + subCls + '">辅：' + p.subName + '</span>';
+    html += '</div>';
+    html += '<p style="font-size:16px;margin:0 0 6px;font-weight:600;">' + esc(p.headline) + '</p>';
+    html += '<div class="score"><span>判断把握</span><div class="bar"><i style="width:' + p.confidence + '%"></i></div><span>' + p.confidence + '%</span></div>';
+
+    html += '<h3 class="sec">为什么这么分</h3><ul class="reasons">';
+    p.reasons.forEach(function(r){ html += '<li>' + esc(r) + '</li>'; });
+    html += '</ul>';
+
+    html += '<h3 class="sec">可直接复制的 Prompt</h3>';
+    html += '<div class="promptbox"><button class="copy" data-copy="1">复制</button>' + esc(promptText) + '</div>';
+
+    html += '<h3 class="sec">交稿前审这几步</h3>';
+    p.checks.forEach(function(c, i){
+      html += '<label class="check"><input type="checkbox" /><span>' + esc(c) + '</span></label>';
+    });
+
+    html += '<div class="risk">' + esc(p.risk) + '</div>';
+    return html;
+  }
+
+  function run(){
+    var text = src.value;
+    var key = task === 'auto' ? detect(text) : task;
+    empty.style.display = 'none';
+    result.style.display = 'block';
+    result.innerHTML = render(text, key);
+    result.querySelector('.copy').addEventListener('click', function(){
+      var box = result.querySelector('.promptbox');
+      var clone = box.cloneNode(true);
+      var btn = clone.querySelector('.copy'); if(btn) btn.remove();
+      var txt = clone.textContent;
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt).then(function(){ flash('已复制'); }, function(){ fallback(txt); });
+      } else { fallback(txt); }
+    });
+    function fallback(txt){
+      var ta = document.createElement('textarea');
+      ta.value = txt; document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); flash('已复制'); }catch(e){ flash('请手动选择复制'); }
+      document.body.removeChild(ta);
+    }
+    function flash(msg){
+      var b = result.querySelector('.copy'); if(!b) return;
+      var old = b.textContent; b.textContent = msg;
+      setTimeout(function(){ b.textContent = old; }, 1200);
+    }
+  }
+
+  $('run').addEventListener('click', run);
+  $('demo').addEventListener('click', function(){
+    task = 'ocr';
+    document.querySelectorAll('#taskChips .chip').forEach(function(c){
+      c.classList.toggle('on', c.dataset.task === 'ocr');
+    });
+    src.value = EXAMPLES.ocr;
+    run();
+  });
+  $('clear').addEventListener('click', function(){
+    src.value = ''; task = 'auto';
+    document.querySelectorAll('#taskChips .chip').forEach(function(c){
+      c.classList.toggle('on', c.dataset.task === 'auto');
+    });
+    result.style.display = 'none'; result.innerHTML = '';
+    empty.style.display = 'block';
+  });
+  document.querySelectorAll('#taskChips .chip').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      task = chip.dataset.task;
+      document.querySelectorAll('#taskChips .chip').forEach(function(c){ c.classList.remove('on'); });
+      chip.classList.add('on');
+      if(task !== 'auto' && EXAMPLES[task] && !src.value.trim()){ src.value = EXAMPLES[task]; }
+      run();
+    });
+  });
+  src.addEventListener('input', function(){
+    if(src.value.trim()){ run(); }
+  });
+})();
+</script>
+
+
+</body></html>
